@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="theme-color" content="#dacdbd">
+	<title>Crumb Club — Cookie Clicker</title>
+	<style>
+		:root {
+			color-scheme: light;
+			--sand: #dacdbd;
+			--cream: #fffaf3;
+			--ink: #3d271b;
+			--muted: #8c7564;
+			--orange: #e88942;
+			--orange-dark: #c96b2c;
+		}
+
+		* { box-sizing: border-box; }
+
+		body {
+			min-height: 100vh;
+			margin: 0;
+			background: var(--sand);
+			color: var(--ink);
+			font-family: Inter, ui-rounded, system-ui, sans-serif;
+		}
+
+		.page-shell {
+			width: min(100% - 2rem, 1040px);
+			margin: 0 auto;
+			padding: 1.25rem 0 2rem;
+		}
+
+		.topbar {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			margin-bottom: clamp(2.5rem, 7vw, 5rem);
+		}
+
+		.brand {
+			display: inline-flex;
+			align-items: center;
+			gap: .65rem;
+			color: var(--ink);
+			font-size: 1.05rem;
+			font-weight: 900;
+			letter-spacing: -.04em;
+			text-decoration: none;
+		}
+
+		.brand-mark {
+			display: grid;
+			width: 2.4rem;
+			height: 2.4rem;
+			place-items: center;
+			border-radius: .8rem;
+			background: var(--ink);
+			color: var(--cream);
+			font-size: 1.2rem;
+		}
+
+		.local-badge, .game-chip {
+			border: 1px solid rgb(61 39 27 / 15%);
+			border-radius: 999px;
+			padding: .55rem .85rem;
+			background: rgb(255 250 243 / 50%);
+			color: var(--ink);
+			font-size: .72rem;
+			font-weight: 800;
+			letter-spacing: .08em;
+			text-transform: uppercase;
+		}
+
+		.content {
+			display: grid;
+			grid-template-columns: minmax(0, .9fr) minmax(320px, 1fr);
+			align-items: center;
+			gap: clamp(2rem, 6vw, 5rem);
+		}
+
+		.intro { padding-bottom: 1rem; }
+
+		.eyebrow {
+			margin: 0 0 .85rem;
+			color: var(--orange-dark);
+			font-size: .75rem;
+			font-weight: 900;
+			letter-spacing: .16em;
+			text-transform: uppercase;
+		}
+
+		h1 {
+			margin: 0;
+			font-size: clamp(2.8rem, 6vw, 5.3rem);
+			font-weight: 950;
+			letter-spacing: -.08em;
+			line-height: .96;
+		}
+
+		h1 span { color: var(--orange-dark); }
+
+		.intro-copy {
+			max-width: 27rem;
+			margin: 1.35rem 0 0;
+			color: #695345;
+			font-size: 1.05rem;
+			line-height: 1.7;
+		}
+
+		.game-card {
+			position: relative;
+			overflow: hidden;
+			padding: clamp(1.25rem, 4vw, 2rem);
+			border: 1px solid rgb(61 39 27 / 8%);
+			border-radius: 2rem;
+			background: var(--cream);
+			box-shadow: 0 24px 60px rgb(61 39 27 / 14%);
+			text-align: center;
+		}
+
+		.game-card::before {
+			position: absolute;
+			top: -7rem;
+			right: -6rem;
+			width: 15rem;
+			height: 15rem;
+			border-radius: 50%;
+			background: #f9e3ca;
+			content: "";
+		}
+
+		.game-head, .game-stage, .score-panel, .progress-panel {
+			position: relative;
+		}
+
+		.game-head {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 1rem;
+			text-align: left;
+		}
+
+		.game-title {
+			margin: 0;
+			font-size: 1rem;
+			font-weight: 900;
+		}
+
+		.game-subtitle {
+			margin: .25rem 0 0;
+			color: var(--muted);
+			font-size: .8rem;
+		}
+
+		.game-chip {
+			flex: 0 0 auto;
+			padding: .45rem .7rem;
+			border: 0;
+			background: #f6e8d9;
+			color: #80502e;
+			font-size: .65rem;
+		}
+
+		.game-stage {
+			position: relative;
+			display: grid;
+			min-height: 270px;
+			place-items: center;
+			padding: 1.5rem 0 .5rem;
+		}
+
+		.cookie-button {
+			display: grid;
+			width: min(250px, 65vw);
+			aspect-ratio: 1;
+			place-items: center;
+			border: 0;
+			border-radius: 50%;
+			background: radial-gradient(circle, #f8e7d4 0 53%, transparent 54%);
+			cursor: pointer;
+			-webkit-tap-highlight-color: transparent;
+			user-select: none;
+		}
+
+		.cookie-button img {
+			display: block;
+			width: 83%;
+			height: auto;
+			border-radius: 50%;
+			filter: drop-shadow(0 15px 12px rgb(73 43 23 / 19%));
+			transition: transform 140ms cubic-bezier(.2, .8, .2, 1);
+		}
+
+		.cookie-button.is-clicked img { animation: cookie-pop 220ms ease-out; }
+		.cookie-button:hover img { transform: translateY(-5px) rotate(-3deg) scale(1.03); }
+		.cookie-button:active img { transform: scale(.91) rotate(3deg); }
+		.cookie-button:focus-visible { outline: 4px solid var(--orange); outline-offset: 3px; }
+		.cookie-button:disabled { cursor: not-allowed; }
+
+		.click-feedback {
+			position: absolute;
+			z-index: 1;
+			color: var(--orange-dark);
+			font-size: clamp(1rem, 3vw, 1.4rem);
+			font-weight: 950;
+			letter-spacing: .04em;
+			pointer-events: none;
+			text-shadow: 0 2px 0 var(--cream), 0 5px 12px rgb(61 39 27 / 22%);
+			white-space: nowrap;
+			animation: click-feedback-float 900ms cubic-bezier(.2, .7, .3, 1) forwards;
+		}
+
+		@keyframes cookie-pop {
+			45% { transform: scale(.88) rotate(5deg); }
+			100% { transform: scale(1) rotate(0); }
+		}
+
+		@keyframes click-feedback-float {
+			0% { opacity: 0; transform: translate(-50%, -15%) scale(.72) rotate(-5deg); }
+			15% { opacity: 1; transform: translate(-50%, -50%) scale(1.08) rotate(2deg); }
+			100% { opacity: 0; transform: translate(-50%, -150%) scale(1) rotate(-3deg); }
+		}
+
+		.score-panel {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			padding: 1rem 1.1rem;
+			border-radius: 1rem;
+			background: var(--ink);
+			color: var(--cream);
+			text-align: left;
+		}
+
+		.score-label {
+			display: block;
+			color: #d7c6b6;
+			font-size: .65rem;
+			font-weight: 800;
+			letter-spacing: .12em;
+			text-transform: uppercase;
+		}
+
+		.score-value {
+			display: block;
+			margin-top: .2rem;
+			font-size: 1.65rem;
+			font-weight: 900;
+			font-variant-numeric: tabular-nums;
+			letter-spacing: -.04em;
+		}
+
+		.score-icon {
+			display: grid;
+			width: 2.7rem;
+			height: 2.7rem;
+			place-items: center;
+			border-radius: .85rem;
+			background: #68462e;
+			font-size: 1.3rem;
+		}
+
+		.energy-panel {
+			display: flex;
+			align-items: center;
+			gap: .85rem;
+			margin-top: 1rem;
+			padding: .9rem 1rem;
+			border-radius: 1rem;
+			background: #f6e8d9;
+			text-align: left;
+		}
+
+		.energy-icon {
+			display: grid;
+			width: 2.5rem;
+			height: 2.5rem;
+			flex: 0 0 auto;
+			place-items: center;
+			border-radius: .8rem;
+			background: #f0d4b8;
+			font-size: 1.1rem;
+		}
+
+		.energy-label {
+			display: block;
+			color: #80502e;
+			font-size: .65rem;
+			font-weight: 850;
+			letter-spacing: .1em;
+			text-transform: uppercase;
+		}
+
+		.energy-value {
+			display: block;
+			margin-top: .15rem;
+			font-size: 1.15rem;
+			font-weight: 900;
+			font-variant-numeric: tabular-nums;
+		}
+
+		.energy-note {
+			margin: .25rem 0 0;
+			color: var(--muted);
+			font-size: .66rem;
+			line-height: 1.45;
+		}
+
+		.comparison-section { margin-top: 1.15rem; text-align: left; }
+
+		.comparison-title {
+			margin: 0 0 .65rem;
+			font-size: .72rem;
+			font-weight: 850;
+		}
+
+		.comparison-grid {
+			display: grid;
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			gap: .55rem;
+		}
+
+		.comparison-card {
+			min-width: 0;
+			display: grid;
+			grid-template-columns: 2rem minmax(0, 1fr);
+			column-gap: .55rem;
+			padding: .7rem;
+			border: 1px solid #eee2d5;
+			border-radius: .85rem;
+			background: #fffdf9;
+		}
+
+		.comparison-icon {
+			display: grid;
+			width: 2rem;
+			height: 2rem;
+			grid-row: span 3;
+			place-items: center;
+			border-radius: .65rem;
+			background: #f6e8d9;
+			color: var(--orange-dark);
+		}
+
+		.comparison-icon svg {
+			width: 1.2rem;
+			height: 1.2rem;
+			fill: none;
+			stroke: currentColor;
+			stroke-linecap: round;
+			stroke-linejoin: round;
+			stroke-width: 1.8;
+		}
+
+		.comparison-label {
+			display: block;
+			align-self: center;
+			color: var(--muted);
+			font-size: .62rem;
+			font-weight: 800;
+			letter-spacing: .04em;
+		}
+
+		.comparison-value {
+			display: block;
+			margin-top: .35rem;
+			font-size: clamp(.85rem, 2.5vw, 1.1rem);
+			font-weight: 900;
+			font-variant-numeric: tabular-nums;
+			line-height: 1.2;
+			overflow-wrap: anywhere;
+		}
+
+		.comparison-detail {
+			display: block;
+			margin-top: .25rem;
+			color: var(--muted);
+			font-size: .6rem;
+			line-height: 1.35;
+		}
+
+		.comparison-caveat {
+			margin: .55rem 0 0;
+			color: var(--muted);
+			font-size: .62rem;
+			line-height: 1.5;
+		}
+
+		.progress-panel { margin-top: 1.15rem; text-align: left; }
+
+		.progress-copy {
+			display: flex;
+			justify-content: space-between;
+			gap: 1rem;
+			margin-bottom: .5rem;
+			color: var(--muted);
+			font-size: .72rem;
+			font-weight: 750;
+		}
+
+		.progress-track {
+			overflow: hidden;
+			height: .5rem;
+			border-radius: 999px;
+			background: #eee2d5;
+		}
+
+		.progress-fill {
+			width: 0;
+			height: 100%;
+			border-radius: inherit;
+			background: linear-gradient(90deg, #f0ad55, var(--orange-dark));
+			transition: width 180ms ease;
+		}
+
+		.save-status {
+			min-height: 1.2rem;
+			margin: .8rem 0 0;
+			color: var(--muted);
+			font-size: .72rem;
+		}
+
+		.ad-wrap {
+			width: min(100%, 728px);
+			margin: 3rem auto 0;
+		}
+
+		.ad-label {
+			margin: 0 0 .45rem;
+			color: #786252;
+			font-size: .62rem;
+			font-weight: 800;
+			letter-spacing: .14em;
+			text-align: center;
+			text-transform: uppercase;
+		}
+
+		.ad-slot {
+			display: grid;
+			min-height: 100px;
+			place-items: center;
+			border: 1px dashed rgb(61 39 27 / 28%);
+			border-radius: 1rem;
+			background: rgb(255 250 243 / 32%);
+			color: #786252;
+			font-size: .8rem;
+			text-align: center;
+		}
+
+		.ad-slot p { margin: .25rem; }
+		.ad-slot .ad-hint { font-size: .68rem; }
+		.adsbygoogle { display: block; min-height: 90px; }
+
+		footer {
+			margin-top: 2rem;
+			color: #705b4b;
+			font-size: .72rem;
+			text-align: center;
+		}
+
+		.footer-note {
+			display: block;
+			margin-top: .35rem;
+		}
+
+		@media (max-width: 760px) {
+			.page-shell { width: min(100% - 1.25rem, 520px); padding-top: 1rem; }
+			.topbar { margin-bottom: 2.2rem; }
+			.content { grid-template-columns: 1fr; gap: 1.5rem; }
+			.intro { text-align: center; }
+			.intro-copy { margin-right: auto; margin-left: auto; }
+			.game-stage { min-height: 230px; }
+			.cookie-button { width: min(220px, 62vw); }
+			.ad-wrap { margin-top: 2rem; }
+		}
+
+		@media (max-width: 390px) {
+			.comparison-grid { grid-template-columns: 1fr; }
+		}
+
+		@media (prefers-reduced-motion: reduce) {
+			*, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+		}
+	</style>
+</head>
+<body>
+	<div class="page-shell">
+		<header class="topbar">
+			<a class="brand" href="#" aria-label="Crumb Club home">
+				<span class="brand-mark" aria-hidden="true">C</span>
+				<span>crumb club</span>
+			</a>
+			<span class="local-badge">Shared counter</span>
+		</header>
+
+		<main>
+			<div class="content">
+				<section class="intro" aria-labelledby="page-title">
+					<p class="eyebrow">A tiny game for your sweet tooth</p>
+					<h1 id="page-title">One cookie.<br><span>Infinite joy.</span></h1>
+					<p class="intro-copy">Give the cookie a tap and add to one shared total. Every visitor sees the same count.</p>
+				</section>
+
+				<section class="game-card" aria-labelledby="game-title">
+					<div class="game-head">
+						<div>
+							<h2 class="game-title" id="game-title">Cookie clicker</h2>
+							<p class="game-subtitle">Every tap adds one to your stash</p>
+						</div>
+						<span class="game-chip" id="level">Level 1</span>
+					</div>
+
+					<div class="game-stage">
+						<button class="cookie-button" id="cookie-button" type="button" aria-label="Click the cookie to add one" disabled>
+							<img src="cookie.avif" alt="" draggable="false">
+						</button>
+					</div>
+
+					<div class="score-panel">
+						<div>
+							<span class="score-label">Global cookie clicks</span>
+							<span class="score-value" id="count" aria-live="polite">0</span>
+						</div>
+						<span class="score-icon" aria-hidden="true">✦</span>
+					</div>
+
+					<div class="energy-panel">
+						<span class="energy-icon" aria-hidden="true">⚡</span>
+						<div>
+							<span class="energy-label">Estimated finger work</span>
+							<strong class="energy-value" id="energy-total">0 kWh</strong>
+							<p class="energy-note">Rough estimate: 1 mJ per tap (1 N over 1 mm). Mechanical work, not device electricity or a measured average.</p>
+						</div>
+					</div>
+
+					<section class="comparison-section" aria-labelledby="comparison-title">
+						<h3 class="comparison-title" id="comparison-title">Equivalent energy could...</h3>
+						<div class="comparison-grid">
+							<div class="comparison-card">
+								<span class="comparison-icon" aria-hidden="true">
+									<svg viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M11 18.5h2"/></svg>
+								</span>
+								<span class="comparison-label">Power a phone</span>
+								<strong class="comparison-value" id="phone-duration">0 sec</strong>
+								<span class="comparison-detail">15 Wh battery, one charge per day</span>
+							</div>
+							<div class="comparison-card">
+								<span class="comparison-icon" aria-hidden="true">
+									<svg viewBox="0 0 24 24"><path d="m3 10 9-7 9 7M5 9v12h14V9M9 21v-7h6v7"/></svg>
+								</span>
+								<span class="comparison-label">Power a home</span>
+								<strong class="comparison-value" id="home-duration">0 years</strong>
+								<span class="comparison-detail">Average U.S. household electricity</span>
+							</div>
+							<div class="comparison-card">
+								<span class="comparison-icon" aria-hidden="true">
+									<svg viewBox="0 0 24 24"><path d="M4 16.5h16l-1.6-5a2 2 0 0 0-1.9-1.5H7.5a2 2 0 0 0-1.9 1.5zM3 16.5v3h2m16-3v3h-2"/><circle cx="7.5" cy="17.5" r="1"/><circle cx="16.5" cy="17.5" r="1"/><path d="m12 11-2 4h3l-1 3 4-5h-3l1-2"/></svg>
+								</span>
+								<span class="comparison-label">Drive an EV</span>
+								<strong class="comparison-value" id="ev-distance">0 mi</strong>
+								<span class="comparison-detail" id="ev-kilometers">0 km at 0.30 kWh/mi</span>
+							</div>
+							<div class="comparison-card">
+								<span class="comparison-icon" aria-hidden="true">
+									<svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V10h4v11m2 0V4h5v17m2 0v-8h3v8M13 8h1m-1 3h1m-1 3h1"/></svg>
+								</span>
+								<span class="comparison-label">Power New York City</span>
+								<strong class="comparison-value" id="city-duration">0 sec</strong>
+								<span class="comparison-detail">Using estimated average city load</span>
+							</div>
+						</div>
+						<p class="comparison-caveat">
+							Illustrative comparisons: 10,791 kWh per U.S. home/year (<a href="https://www.eia.gov/tools/faqs/faq.php?id=97&amp;t=3" target="_blank" rel="noopener noreferrer">2022 EIA</a>), 0.30 kWh per EV mile, and an estimated 5.7 GW average NYC load.
+							Phone assumes a 15 Wh battery and one full charge per day. These compare equivalent energy only; finger work is not electricity that can actually be captured and supplied.
+						</p>
+					</section>
+
+					<div class="progress-panel">
+						<div class="progress-copy">
+							<span id="progress-label">Next level at 25 cookies</span>
+							<span id="progress-value">0 / 25</span>
+						</div>
+						<div class="progress-track" id="progress-track" role="progressbar" aria-label="Progress to next level" aria-valuemin="0" aria-valuemax="25" aria-valuenow="0">
+							<div class="progress-fill" id="progress-fill"></div>
+						</div>
+					</div>
+					<p class="save-status" id="save-status" role="status">Connecting to the shared counter...</p>
+				</section>
+			</div>
+
+			<aside class="ad-wrap" aria-label="Advertisement">
+				<p class="ad-label">Advertisement</p>
+				<div class="ad-slot" id="ad-slot">
+					<div>
+						<p>Ad space</p>
+						<p class="ad-hint">Add your Google AdSense IDs to display ads here.</p>
+					</div>
+				</div>
+			</aside>
+		</main>
+
+		<footer>
+			Made with a little butter and a lot of love. The counter doesn't use browser cookies—this cookie just wants clicks.
+			<span class="footer-note">Yes—this is vibecoded.</span>
+		</footer>
+	</div>
+
+	<script type="module">
+		import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+		const SUPABASE_URL = 'https://ccwkwecyzokijvgelaim.supabase.co';
+		const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_yV4JOFUS5DSgQACuVrpCOQ_lQB1CKP_';
+		const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+		const countDisplay = document.getElementById('count');
+		const cookieButton = document.getElementById('cookie-button');
+		const saveStatus = document.getElementById('save-status');
+		const progressFill = document.getElementById('progress-fill');
+		const progressTrack = document.getElementById('progress-track');
+		const progressLabel = document.getElementById('progress-label');
+		const progressValue = document.getElementById('progress-value');
+		const levelDisplay = document.getElementById('level');
+		const energyDisplay = document.getElementById('energy-total');
+		const homeDurationDisplay = document.getElementById('home-duration');
+		const evDistanceDisplay = document.getElementById('ev-distance');
+		const evKilometersDisplay = document.getElementById('ev-kilometers');
+		const phoneDurationDisplay = document.getElementById('phone-duration');
+		const cityDurationDisplay = document.getElementById('city-duration');
+		const FINGER_WORK_JOULES_PER_CLICK = 0.001;
+		const KWH_PER_US_HOME_YEAR = 10791;
+		const EV_KWH_PER_MILE = 0.3;
+		const PHONE_BATTERY_KWH = 0.015;
+		const PHONE_CHARGE_SECONDS = 86_400;
+		const NYC_AVERAGE_LOAD_KW = 5_700_000;
+		let cookies = 0;
+		let pendingClicks = 0;
+		let processingClicks = false;
+		const clickPhrases = ['YUMMY!', 'OH YEAH!', 'ONE MORE!'];
+
+		function formatDuration(seconds) {
+			if (seconds < 60) return `${seconds.toLocaleString(undefined, { maximumFractionDigits: 1 })} sec`;
+			if (seconds < 3600) return `${(seconds / 60).toLocaleString(undefined, { maximumFractionDigits: 1 })} min`;
+			if (seconds < 86400) return `${(seconds / 3600).toLocaleString(undefined, { maximumFractionDigits: 1 })} hr`;
+			if (seconds < 31_557_600) return `${(seconds / 86400).toLocaleString(undefined, { maximumFractionDigits: 1 })} days`;
+			return `${(seconds / 31_557_600).toLocaleString(undefined, { maximumFractionDigits: 2 })} years`;
+		}
+
+		function renderCount() {
+			countDisplay.textContent = cookies.toLocaleString();
+			const energyKwh = cookies * FINGER_WORK_JOULES_PER_CLICK / 3_600_000;
+			energyDisplay.textContent = `${energyKwh > 0 && energyKwh < 0.001
+				? energyKwh.toExponential(3)
+				: energyKwh.toLocaleString(undefined, { maximumFractionDigits: 3 })} kWh`;
+			const homeYears = energyKwh / KWH_PER_US_HOME_YEAR;
+			const evMiles = energyKwh / EV_KWH_PER_MILE;
+			const phoneSeconds = energyKwh / PHONE_BATTERY_KWH * PHONE_CHARGE_SECONDS;
+			const citySeconds = energyKwh / NYC_AVERAGE_LOAD_KW * 3600;
+			homeDurationDisplay.textContent = formatDuration(homeYears * 31_557_600);
+			evDistanceDisplay.textContent = `${evMiles.toLocaleString(undefined, { maximumFractionDigits: 0 })} mi`;
+			evKilometersDisplay.textContent = `${(evMiles * 1.60934).toLocaleString(undefined, { maximumFractionDigits: 0 })} km at 0.30 kWh/mi`;
+			phoneDurationDisplay.textContent = formatDuration(phoneSeconds);
+			cityDurationDisplay.textContent = formatDuration(citySeconds);
+			const level = Math.floor(cookies / 25) + 1;
+			const progress = cookies % 25;
+			levelDisplay.textContent = `Level ${level.toLocaleString()}`;
+			progressLabel.textContent = `Next level at ${(level * 25).toLocaleString()} cookies`;
+			progressValue.textContent = `${progress} / 25`;
+			progressFill.style.width = `${progress * 4}%`;
+			progressTrack.setAttribute('aria-valuenow', String(progress));
+		}
+
+		function showClickEffect(event) {
+			cookieButton.classList.remove('is-clicked');
+			void cookieButton.offsetWidth;
+			cookieButton.classList.add('is-clicked');
+			cookieButton.addEventListener('animationend', () => cookieButton.classList.remove('is-clicked'), { once: true });
+
+			const stage = cookieButton.parentElement;
+			const stageRect = stage.getBoundingClientRect();
+			const buttonRect = cookieButton.getBoundingClientRect();
+			const x = event.detail === 0 ? buttonRect.left + buttonRect.width / 2 : event.clientX;
+			const y = event.detail === 0 ? buttonRect.top + buttonRect.height / 2 : event.clientY;
+			const feedback = document.createElement('span');
+			feedback.className = 'click-feedback';
+			feedback.setAttribute('aria-hidden', 'true');
+			feedback.textContent = clickPhrases[Math.floor(Math.random() * clickPhrases.length)];
+			feedback.style.left = `${x - stageRect.left}px`;
+			feedback.style.top = `${y - stageRect.top}px`;
+			stage.append(feedback);
+			feedback.addEventListener('animationend', () => feedback.remove(), { once: true });
+		}
+
+		function describeError(error) {
+			if (error instanceof Error) return error.message;
+			if (error && typeof error === 'object' && 'message' in error) return String(error.message);
+			return 'An unexpected error occurred.';
+		}
+
+		async function requestCount(functionName) {
+			const { data, error } = await supabase.rpc(functionName);
+			if (error) throw error;
+
+			const total = Number(data);
+			if (!Number.isSafeInteger(total) || total < 0) {
+				throw new Error('Supabase returned an invalid counter value.');
+			}
+			return total;
+		}
+
+		async function initializeCounter() {
+			try {
+				cookies = await requestCount('get_cookie_count');
+				renderCount();
+				cookieButton.disabled = false;
+				saveStatus.textContent = 'Total cookie clicks made by people worldwide.';
+			} catch (error) {
+				countDisplay.textContent = 'Unavailable';
+				saveStatus.textContent = `Could not connect to Supabase. Run supabase-setup.sql and check the project settings. ${describeError(error)}`;
+			}
+		}
+
+		async function processClicks() {
+			if (processingClicks) return;
+			processingClicks = true;
+
+			while (pendingClicks > 0) {
+				pendingClicks -= 1;
+				try {
+					cookies = await requestCount('increment_cookie_count');
+					renderCount();
+					saveStatus.textContent = 'Total cookie clicks made by people worldwide.';
+				} catch (error) {
+					pendingClicks = 0;
+					saveStatus.textContent = `Could not update the shared count. ${describeError(error)}`;
+					break;
+				}
+			}
+
+			processingClicks = false;
+		}
+
+		cookieButton.addEventListener('click', (event) => {
+			if (cookieButton.disabled) return;
+			showClickEffect(event);
+			pendingClicks += 1;
+			void processClicks();
+		});
+
+		void initializeCounter();
+
+		const ADSENSE_CLIENT = '';
+		const ADSENSE_SLOT = '';
+		if (ADSENSE_CLIENT && ADSENSE_SLOT) {
+			const adSlot = document.getElementById('ad-slot');
+			const ad = document.createElement('ins');
+			ad.className = 'adsbygoogle';
+			ad.dataset.adClient = ADSENSE_CLIENT;
+			ad.dataset.adSlot = ADSENSE_SLOT;
+			ad.dataset.adFormat = 'auto';
+			ad.dataset.fullWidthResponsive = 'true';
+			adSlot.replaceChildren(ad);
+
+			const script = document.createElement('script');
+			script.async = true;
+			script.crossOrigin = 'anonymous';
+			script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${encodeURIComponent(ADSENSE_CLIENT)}`;
+			script.onload = () => {
+				(window.adsbygoogle = window.adsbygoogle || []).push({});
+			};
+			script.onerror = () => {
+				adSlot.textContent = 'Google AdSense could not load.';
+			};
+			document.head.append(script);
+		}
+	</script>
+</body>
+</html>
